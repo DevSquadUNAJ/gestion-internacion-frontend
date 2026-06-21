@@ -5,6 +5,9 @@
     --color-borde: #9EC9F3;
     --color-primario: #2F78C8; 
     --color-oscuro: #173A5E;
+
+    --color-peligro: #DC3545;
+    --sombra-suave: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 body {
