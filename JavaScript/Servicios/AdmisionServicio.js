@@ -6,4 +6,9 @@ export class AdmisionServicio {
         const url = `${API_URLS.Admision}/api/sectores`;
         return await ApiCliente.get(url);
     }
+
+    static async obtenerCamasPorSector(sectorId) {
+        const url = `${API_URLS.Admision}/api/sectores/${sectorId}/camas`;
+        return await ApiCliente.get(url);
+    }
 }
