@@ -20,4 +20,12 @@ export class AdmisionServicio {
         };
         return await ApiCliente.patch(url, body);
     }
+
+    static async procesarAltaInternacion(internacionId, estadoEgreso = "AltaMedica") {
+        const url = `${API_URLS.Admision}/api/internaciones/${internacionId}/alta`;
+        const body = {
+            estadoEgreso: estadoEgreso
+        };
+        return await ApiCliente.patch(url, body);
+    }
 }
