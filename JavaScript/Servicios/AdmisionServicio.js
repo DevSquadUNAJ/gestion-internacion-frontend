@@ -11,4 +11,13 @@ export class AdmisionServicio {
         const url = `${API_URLS.Admision}/api/sectores/${sectorId}/camas`;
         return await ApiCliente.get(url);
     }
+
+    static async cambiarEstadoCama(camaId, nuevoEstado, motivo) {
+        const url = `${API_URLS.Admision}/api/camas/${camaId}/estado`;
+        const body = {
+            nuevoEstado: nuevoEstado,
+            motivo: motivo
+        };
+        return await ApiCliente.patch(url, body);
+    }
 }
