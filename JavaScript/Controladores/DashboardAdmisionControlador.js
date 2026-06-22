@@ -1,5 +1,6 @@
 import { AdmisionServicio } from '../Servicios/AdmisionServicio.js';
 import { crearTarjetaSector } from '../Componentes/Tarjetas/TarjetaSector.js';
+import { inicializarVistaCamas } from './CamasSectorControlador.js';
 
 export const inicializarDashboardAdmision = async () => {
     const contenedor = document.getElementById('contenedor-dinamico');
@@ -9,9 +10,7 @@ export const inicializarDashboardAdmision = async () => {
 
     contenedor.innerHTML = `
         <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Cargando...</span>
-            </div>
+            <div class="spinner-border text-primary" role="status"></div>
             <p class="text-muted mt-2">Cargando sectores...</p>
         </div>
     `;
@@ -31,6 +30,16 @@ export const inicializarDashboardAdmision = async () => {
         htmlGrilla += '</div>';
 
         contenedor.innerHTML = htmlGrilla;
+
+        const botonesVerCamas = contenedor.querySelectorAll('button[data-sector-id]');
+        botonesVerCamas.forEach(boton => {
+            boton.addEventListener('click', (e) => {
+                const sectorId = e.currentTarget.getAttribute('data-sector-id');
+                const nombreSector = e.currentTarget.closest('.card').querySelector('.card-title').textContent.trim();
+                
+                inicializarVistaCamas(sectorId, nombreSector, inicializarDashboardAdmision);
+            });
+        });
 
     } catch (error) {
         console.error(error);
