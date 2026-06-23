@@ -80,6 +80,7 @@
                     <h5 class="modal-title fw-bold text-oscuro"><i class="bi bi-gear-fill text-primary me-2"></i>Gestionar Cama</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+
                 <div class="modal-body p-4">
                     <form id="form-cambiar-estado">
                         <input type="hidden" id="modal-cama-id">
@@ -151,6 +152,43 @@
                                 <button type="button" class="btn btn-primario px-4" id="btn-confirmar-traslado">Confirmar Traslado</button>
                             </div>
                         </div>
+                    </div>
+
+                    <div id="acciones-cama-disponible" class="d-none mt-2 text-start">
+                        <div class="alert alert-success border-0 bg-success bg-opacity-10 shadow-sm mb-4">
+                            <i class="bi bi-check-circle-fill text-success me-2"></i>
+                            Cama disponible para nueva internación.
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-oscuro small">Buscar Paciente (DNI)</label>
+                            <div class="input-group shadow-sm rounded">
+                                <input type="text" id="input-buscar-dni" class="form-control border-primary" placeholder="Ingrese el DNI sin puntos...">
+                                <button class="btn btn-primario" type="button" id="btn-buscar-paciente">
+                                    <i class="bi bi-search"></i> Buscar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="tarjeta-paciente-encontrado" class="card border-success mb-3 d-none shadow-sm">
+                            <div class="card-body py-2 px-3 bg-success bg-opacity-10 rounded d-flex justify-content-between align-items-center">
+                                <div>
+                                    <input type="hidden" id="hidden-paciente-id">
+                                    <p class="mb-0 fw-bold text-oscuro" id="lbl-paciente-nombre">Nombre del Paciente</p>
+                                    <small class="text-muted" id="lbl-paciente-datos">DNI: ...</small>
+                                </div>
+                                <i class="bi bi-person-check-fill text-success fs-3"></i>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="input-motivo-internacion" class="form-label fw-semibold text-oscuro small">Motivo de Ingreso</label>
+                            <textarea class="form-control shadow-sm" id="input-motivo-internacion" rows="2" placeholder="Ej: Neumonía, Observación en guardia..."></textarea>
+                        </div>
+
+                        <button type="button" class="btn btn-success w-100 fw-bold shadow-sm mt-2" id="btn-registrar-internacion" disabled>
+                            <i class="bi bi-clipboard2-pulse-fill me-2"></i>Registrar Internación
+                        </button>
                     </div>
                     
                 </div>

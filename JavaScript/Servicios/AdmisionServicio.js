@@ -30,11 +30,26 @@ export class AdmisionServicio {
     }
 
     static async trasladarPaciente(internacionId, camaDestinoId, motivoTraslado) {
-        const url = `${API_URLS.Admision}/api/internaciones/${internacionId}/trasladar`;
+        const url = `${API_URLS.Admision}/api/internaciones/${internacionId}`;
         const body = {
             camaDestinoId: camaDestinoId,
             motivoTraslado: motivoTraslado
         };
         return await ApiCliente.patch(url, body);
+    }
+
+    static async buscarPacientePorDni(dni) {
+        const url = `${API_URLS.Admision}/api/pacientes?dni=${dni}`;
+        return await ApiCliente.get(url);
+    }
+
+    static async registrarInternacion(pacienteId, camaId, motivo) {
+        const url = `${API_URLS.Admision}/api/internaciones`;
+        const body = {
+            pacienteId: pacienteId,
+            camaId: camaId,
+            motivo: motivo
+        };
+        return await ApiCliente.post(url, body);
     }
 }
