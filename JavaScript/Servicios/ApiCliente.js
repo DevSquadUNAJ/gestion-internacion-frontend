@@ -50,4 +50,36 @@ export class ApiCliente {
         if (respuesta.status === 204) return null;
         return await respuesta.json();
     }
+
+    static async post(url, body) {
+        const token = sessionStorage.getItem('jwtToken');
+        
+        const respuesta = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+
+        if (respuesta.status === 401) {
+            sessionStorage.clear();
+            window.location.href = 'Paginas/login.html';
+            throw new Error("Su sesión ha expirado.");
+        }
+
+        if (!respuesta.ok) {
+            let mensajeError = respuesta.statusText;
+            try {
+                const errorJson = await respuesta.json();
+                mensajeError = errorJson.detail || errorJson.title || mensajeError;
+            } catch (e) {}
+            throw new Error(mensajeError);
+        }
+
+        if (respuesta.status === 204) return null;
+        return await respuesta.json();
+    }
+
 }

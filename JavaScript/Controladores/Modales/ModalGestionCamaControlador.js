@@ -12,6 +12,7 @@ export const abrirModalGestionCama = (camaId, internacionId, estadoActual, callb
     const formCambiarEstado = document.getElementById('form-cambiar-estado');
     const seccionCamaOcupada = document.getElementById('acciones-cama-ocupada');
     const btnGuardarActual = document.getElementById('btn-guardar-estado'); 
+    const seccionCamaDisponible = document.getElementById('acciones-cama-disponible');
 
     // 2. Mutación de Interfaz según Estado
     if (estadoActual === 'Ocupada') {
@@ -20,8 +21,23 @@ export const abrirModalGestionCama = (camaId, internacionId, estadoActual, callb
         formCambiarEstado.classList.add('d-none');
         btnGuardarActual.classList.add('d-none');
         seccionCamaOcupada.classList.remove('d-none');
+        seccionCamaDisponible.classList.add('d-none'); // NUEVO
+    } else if (estadoActual === 'Disponible') {
+        // NUEVO MODO: DISPONIBLE (CU-01)
+        seccionCamaOcupada.classList.add('d-none');
+        formCambiarEstado.classList.add('d-none');
+        btnGuardarActual.classList.add('d-none');
+        seccionCamaDisponible.classList.remove('d-none');
+        
+        // Resetear formulario de internación
+        document.getElementById('input-buscar-dni').value = '';
+        document.getElementById('tarjeta-paciente-encontrado').classList.add('d-none');
+        document.getElementById('hidden-paciente-id').value = '';
+        document.getElementById('input-motivo-internacion').value = '';
+        document.getElementById('btn-registrar-internacion').disabled = true;
     } else {
         seccionCamaOcupada.classList.add('d-none');
+        seccionCamaDisponible.classList.add('d-none'); // NUEVO
         formCambiarEstado.classList.remove('d-none');
         btnGuardarActual.classList.remove('d-none');
         document.getElementById('modal-estado-actual').value = estadoActual;
@@ -176,6 +192,72 @@ export const abrirModalGestionCama = (camaId, internacionId, estadoActual, callb
         } finally {
             btnConfirmarTrasladoNuevo.disabled = false;
             btnConfirmarTrasladoNuevo.innerHTML = 'Confirmar Traslado';
+        }
+    });
+
+    // --- LÓGICA CU-01: BUSCAR PACIENTE ---
+    const btnBuscarPaciente = document.getElementById('btn-buscar-paciente');
+    const btnBuscarNuevo = btnBuscarPaciente.cloneNode(true);
+    btnBuscarPaciente.parentNode.replaceChild(btnBuscarNuevo, btnBuscarPaciente);
+
+    btnBuscarNuevo.addEventListener('click', async () => {
+        const dni = document.getElementById('input-buscar-dni').value.trim();
+        if (!dni) return Swal.fire({ icon: 'warning', title: 'DNI Requerido', text: 'Ingrese un DNI para buscar.' });
+
+        btnBuscarNuevo.disabled = true;
+        btnBuscarNuevo.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+        try {
+            const paciente = await AdmisionServicio.buscarPacientePorDni(dni);
+            
+            // Si el backend devuelve null o vacío
+            if (!paciente) throw new Error("Paciente no encontrado en el sistema.");
+
+            // Mostrar tarjeta de resultado
+            document.getElementById('hidden-paciente-id').value = paciente.pacienteId; 
+            document.getElementById('lbl-paciente-nombre').textContent = paciente.nombre;
+            document.getElementById('lbl-paciente-datos').textContent = `DNI: ${paciente.dni}`;
+            document.getElementById('tarjeta-paciente-encontrado').classList.remove('d-none');
+            
+            // Habilitar botón de registro
+            document.getElementById('btn-registrar-internacion').disabled = false;
+
+        } catch (error) {
+            document.getElementById('tarjeta-paciente-encontrado').classList.add('d-none');
+            document.getElementById('btn-registrar-internacion').disabled = true;
+            Swal.fire({ icon: 'error', title: 'Búsqueda fallida', text: error.message });
+        } finally {
+            btnBuscarNuevo.disabled = false;
+            btnBuscarNuevo.innerHTML = '<i class="bi bi-search"></i> Buscar';
+        }
+    });
+
+    // --- LÓGICA CU-01: REGISTRAR INTERNACIÓN ---
+    const btnRegistrar = document.getElementById('btn-registrar-internacion');
+    const btnRegistrarNuevo = btnRegistrar.cloneNode(true);
+    btnRegistrar.parentNode.replaceChild(btnRegistrarNuevo, btnRegistrar);
+
+    btnRegistrarNuevo.addEventListener('click', async () => {
+        const camaId = document.getElementById('modal-cama-id').value;
+        const pacienteId = document.getElementById('hidden-paciente-id').value;
+        const motivo = document.getElementById('input-motivo-internacion').value;
+
+        if (!motivo.trim()) return Swal.fire({ icon: 'warning', title: 'Falta Motivo', text: 'El motivo de internación es obligatorio.' });
+
+        btnRegistrarNuevo.disabled = true;
+        btnRegistrarNuevo.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Registrando...';
+
+        try {
+            await AdmisionServicio.registrarInternacion(pacienteId, camaId, motivo);
+            
+            modalBootstrap.hide();
+            Swal.fire({ icon: 'success', title: 'Internación Registrada', text: 'El paciente fue internado exitosamente.', timer: 2000, showConfirmButton: false });
+            callbackRecargarCamas();
+        } catch (error) {
+            Swal.fire({ icon: 'error', title: 'Error al internar', text: error.message });
+        } finally {
+            btnRegistrarNuevo.disabled = false;
+            btnRegistrarNuevo.innerHTML = '<i class="bi bi-clipboard2-pulse-fill me-2"></i>Registrar Internación';
         }
     });
 };
