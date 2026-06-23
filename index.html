@@ -113,11 +113,44 @@
                         </div>
                         <input type="hidden" id="modal-internacion-id">
                         
-                        <div class="d-grid gap-2">
+                        <div id="bloque-botones-ocupada" class="d-grid gap-2">
                             <button type="button" class="btn btn-success btn-lg fw-bold shadow-sm" id="btn-procesar-alta">
                                 <i class="bi bi-person-walking me-2"></i> Procesar Alta Médica
                             </button>
+                            <button type="button" class="btn btn-outline-primary btn-lg fw-bold shadow-sm" id="btn-iniciar-traslado">
+                                <i class="bi bi-arrow-left-right me-2"></i> Trasladar Paciente
+                            </button>
+                        </div>
+
+                        <div id="formulario-traslado" class="d-none text-start mt-3 pt-3 border-top">
+                            <h6 class="fw-bold text-oscuro mb-3">
+                                <i class="bi bi-arrow-left-right text-primary me-2"></i>Formulario de Traslado
+                            </h6>
+                            
+                            <div class="mb-3">
+                                <label for="select-traslado-sector" class="form-label fw-semibold text-oscuro small">Sector Destino</label>
+                                <select class="form-select" id="select-traslado-sector" required>
+                                    <option value="" selected disabled>Seleccione un sector...</option>
+                                </select>
                             </div>
+
+                            <div class="mb-3">
+                                <label for="select-traslado-cama" class="form-label fw-semibold text-oscuro small">Cama Disponible</label>
+                                <select class="form-select" id="select-traslado-cama" required disabled>
+                                    <option value="" selected disabled>Seleccione primero un sector...</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="input-traslado-motivo" class="form-label fw-semibold text-oscuro small">Motivo del Traslado</label>
+                                <textarea class="form-control" id="input-traslado-motivo" rows="2" placeholder="Ej: Traslado a Unidad Coronaria por requerimiento clínico..." required></textarea>
+                            </div>
+
+                            <div class="d-flex gap-2 justify-content-end mt-4">
+                                <button type="button" class="btn btn-light" id="btn-cancelar-traslado">Atrás</button>
+                                <button type="button" class="btn btn-primario px-4" id="btn-confirmar-traslado">Confirmar Traslado</button>
+                            </div>
+                        </div>
                     </div>
                     
                 </div>

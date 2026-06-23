@@ -28,4 +28,13 @@ export class AdmisionServicio {
         };
         return await ApiCliente.patch(url, body);
     }
+
+    static async trasladarPaciente(internacionId, camaDestinoId, motivoTraslado) {
+        const url = `${API_URLS.Admision}/api/internaciones/${internacionId}/trasladar`;
+        const body = {
+            camaDestinoId: camaDestinoId,
+            motivoTraslado: motivoTraslado
+        };
+        return await ApiCliente.patch(url, body);
+    }
 }

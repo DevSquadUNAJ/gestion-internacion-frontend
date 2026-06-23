@@ -74,6 +74,8 @@ const atarEventosGestionarCama = (callbackRecargarCamas) => {
             
             if (estadoActual === 'Ocupada') {
                 // Modo: Gestión de Paciente
+                document.getElementById('bloque-botones-ocupada').classList.remove('d-none');
+                document.getElementById('formulario-traslado').classList.add('d-none');
                 formCambiarEstado.classList.add('d-none');
                 btnGuardarActual.classList.add('d-none'); // Oculta el botón correcto
                 seccionCamaOcupada.classList.remove('d-none');
@@ -174,6 +176,121 @@ const atarEventosGestionarCama = (callbackRecargarCamas) => {
                 btnAltaNuevo.disabled = false;
                 btnAltaNuevo.innerHTML = '<i class="bi bi-person-walking me-2"></i> Procesar Alta Médica';
             }
+        }
+    });
+
+    // --- LÓGICA BOTÓN: INICIAR TRASLADO (CU-03) ---
+    const btnIniciarTraslado = document.getElementById('btn-iniciar-traslado');
+    const btnIniciarNuevo = btnIniciarTraslado.cloneNode(true);
+    btnIniciarTraslado.parentNode.replaceChild(btnIniciarNuevo, btnIniciarTraslado);
+
+    btnIniciarNuevo.addEventListener('click', async () => {
+        document.getElementById('bloque-botones-ocupada').classList.add('d-none');
+        document.getElementById('formulario-traslado').classList.remove('d-none');
+        
+        // Buscamos los selectores actuales en el momento del clic
+        const selectSectorActivo = document.getElementById('select-traslado-sector');
+        const selectCamaActiva = document.getElementById('select-traslado-cama');
+        
+        selectSectorActivo.innerHTML = '<option value="" selected disabled>Cargando sectores...</option>';
+        selectCamaActiva.innerHTML = '<option value="" selected disabled>Seleccione primero un sector...</option>';
+        selectCamaActiva.disabled = true;
+        document.getElementById('input-traslado-motivo').value = "";
+
+        try {
+            const sectores = await AdmisionServicio.obtenerSectores();
+            selectSectorActivo.innerHTML = '<option value="" selected disabled>Seleccione un sector...</option>';
+            sectores.forEach(sec => {
+                selectSectorActivo.innerHTML += `<option value="${sec.sectorId}">${sec.nombre} (Piso ${sec.piso})</option>`;
+            });
+        } catch (error) {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudieron recuperar los sectores del hospital.' });
+        }
+    });
+
+    // --- REACCIÓN AL CAMBIO DE SECTOR DESTINO ---
+    const selectTrasladoSector = document.getElementById('select-traslado-sector');
+    const selectSectorNuevo = selectTrasladoSector.cloneNode(true);
+    selectTrasladoSector.parentNode.replaceChild(selectSectorNuevo, selectTrasladoSector);
+    
+    selectSectorNuevo.addEventListener('change', async (e) => {
+        const sectorDestinoId = e.target.value;
+        const selectCamaActiva = document.getElementById('select-traslado-cama');
+        
+        selectCamaActiva.innerHTML = '<option value="" selected disabled>Cargando camas libres...</option>';
+        selectCamaActiva.disabled = true;
+
+        try {
+            const camas = await AdmisionServicio.obtenerCamasPorSector(sectorDestinoId);
+            const camasDisponibles = camas.filter(c => c.estado === 'Disponible');
+
+            if (camasDisponibles.length === 0) {
+                selectCamaActiva.innerHTML = '<option value="" selected disabled>No hay camas disponibles en este sector</option>';
+                return;
+            }
+
+            selectCamaActiva.innerHTML = '<option value="" selected disabled>Seleccione una cama...</option>';
+            camasDisponibles.sort((a, b) => a.numero - b.numero);
+            camasDisponibles.forEach(c => {
+                selectCamaActiva.innerHTML += `<option value="${c.camaId}">Cama ${c.numero}</option>`;
+            });
+            selectCamaActiva.disabled = false;
+        } catch (error) {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudieron recuperar las camas de destino.' });
+        }
+    });
+
+    // --- BOTÓN ATRÁS (DENTRO DEL FORMULARIO DE TRASLADO) ---
+    const btnCancelarTraslado = document.getElementById('btn-cancelar-traslado');
+    const btnCancelarTrasladoNuevo = btnCancelarTraslado.cloneNode(true);
+    btnCancelarTraslado.parentNode.replaceChild(btnCancelarTrasladoNuevo, btnCancelarTraslado);
+    btnCancelarTrasladoNuevo.addEventListener('click', () => {
+        // CORRECCIÓN APLICADA AQUÍ: Buscar en el DOM al momento del click
+        document.getElementById('formulario-traslado').classList.add('d-none');
+        document.getElementById('bloque-botones-ocupada').classList.remove('d-none');
+    });
+
+    // --- BOTÓN CONFIRMAR TRASLADO ---
+    const btnConfirmarTraslado = document.getElementById('btn-confirmar-traslado');
+    const btnConfirmarTrasladoNuevo = btnConfirmarTraslado.cloneNode(true);
+    btnConfirmarTraslado.parentNode.replaceChild(btnConfirmarTrasladoNuevo, btnConfirmarTraslado);
+
+    btnConfirmarTrasladoNuevo.addEventListener('click', async () => {
+        const internacionId = document.getElementById('modal-internacion-id').value;
+        
+        // CORRECCIÓN APLICADA AQUÍ: Buscar el valor del select por ID al momento del click
+        const camaDestinoId = document.getElementById('select-traslado-cama').value;
+        const motivoTraslado = document.getElementById('input-traslado-motivo').value;
+
+        if (!camaDestinoId || !motivoTraslado.trim()) {
+            Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Debe seleccionar una cama de destino y redactar un motivo.' });
+            return;
+        }
+
+        btnConfirmarTrasladoNuevo.disabled = true;
+        btnConfirmarTrasladoNuevo.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Trasladando...';
+
+        try {
+            // Disparar el API (CU-03)
+            await AdmisionServicio.trasladarPaciente(internacionId, camaDestinoId, motivoTraslado);
+            
+            modalBootstrap.hide();
+            Swal.fire({
+                icon: 'success',
+                title: 'Paciente Trasladado',
+                text: 'El traslado se registró de forma correcta en el sistema.',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            
+            // Recargamos el listado de camas para ver los nuevos estados de forma reactiva
+            callbackRecargarCamas();
+
+        } catch (error) {
+            Swal.fire({ icon: 'error', title: 'Error en traslado', text: error.message });
+        } finally {
+            btnConfirmarTrasladoNuevo.disabled = false;
+            btnConfirmarTrasladoNuevo.innerHTML = 'Confirmar Traslado';
         }
     });
 };
