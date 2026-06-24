@@ -23,12 +23,19 @@ export const abrirModalGestionCama = (camaId, internacionId, estadoActual, callb
         seccionCamaOcupada.classList.remove('d-none');
         seccionCamaDisponible.classList.add('d-none'); // NUEVO
     } else if (estadoActual === 'Disponible') {
-        // NUEVO MODO: DISPONIBLE (CU-01)
+        // MODO: DISPONIBLE (CU-01 Internación y CU-02 Cambiar Estado)
         seccionCamaOcupada.classList.add('d-none');
-        formCambiarEstado.classList.add('d-none');
-        btnGuardarActual.classList.add('d-none');
+        
+        formCambiarEstado.classList.remove('d-none');
+        btnGuardarActual.classList.remove('d-none');
+        
         seccionCamaDisponible.classList.remove('d-none');
         
+        // Cargar los datos en el formulario de estado
+        document.getElementById('modal-estado-actual').value = estadoActual;
+        document.getElementById('select-nuevo-estado').value = "";
+        document.getElementById('input-motivo').value = "";
+
         // Resetear formulario de internación
         document.getElementById('input-buscar-dni').value = '';
         document.getElementById('tarjeta-paciente-encontrado').classList.add('d-none');
