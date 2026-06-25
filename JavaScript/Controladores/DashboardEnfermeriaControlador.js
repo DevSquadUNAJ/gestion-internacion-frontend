@@ -1,4 +1,5 @@
 import { EnfermeriaServicio } from '../Servicios/EnfermeriaServicio.js';
+import { abrirModalGestionDosis } from './Modales/ModalGestionDosisControlador.js';
 
 export const inicializarDashboardEnfermeria = async () => {
     const contenedor = document.getElementById('contenedor-dinamico');
@@ -46,8 +47,10 @@ export const inicializarDashboardEnfermeria = async () => {
             const colorInsignia = estaAtrasada ? 'bg-danger' : 'bg-primary';
             const textoAtraso = estaAtrasada ? '<span class="text-danger fw-bold small ms-2"><i class="bi bi-exclamation-triangle-fill"></i> ¡ATRASADA!</span>' : '';
 
-            // Formatear hora (Ej: 14:30)
-            const horaFormateada = fechaProg.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            // Formatear Día y Hora (Ej: 24/10 - 14:30) ---
+            const diaMes = fechaProg.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
+            const hora = fechaProg.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+            const fechaHoraFormateada = `${diaMes} - ${hora}`;
 
             htmlTareas += `
                 <div class="col-12 col-xl-6 mb-3">
@@ -57,7 +60,7 @@ export const inicializarDashboardEnfermeria = async () => {
                                 <h5 class="fw-bold text-oscuro mb-0">
                                     <i class="bi bi-capsule me-2 text-secondary"></i>${tarea.medicamento}
                                 </h5>
-                                <span class="badge ${colorInsignia} fs-6 shadow-sm"><i class="bi bi-clock me-1"></i> ${horaFormateada}</span>
+                                <span class="badge ${colorInsignia} fs-6 shadow-sm"><i class="bi bi-calendar-event me-1"></i> ${fechaHoraFormateada}</span>
                             </div>
                             
                             <hr class="text-muted">
@@ -85,7 +88,18 @@ export const inicializarDashboardEnfermeria = async () => {
         htmlTareas += '</div>';
         contenedor.innerHTML = htmlTareas;
 
-        // Aquí luego ataremos los eventos del botón "Gestionar Dosis" para los CU-16 y CU-17
+        // --- NUEVO: ATAR EVENTOS DE LOS BOTONES "GESTIONAR DOSIS" ---
+        const botonesGestionar = document.querySelectorAll('button[data-dosis-id]');
+        botonesGestionar.forEach(boton => {
+            boton.addEventListener('click', (e) => {
+                const dosisId = e.currentTarget.getAttribute('data-dosis-id');
+                const medicamento = e.currentTarget.getAttribute('data-medicamento');
+                const paciente = e.currentTarget.getAttribute('data-paciente');
+                
+                // Abrimos el modal y pasamos "cargarTablero" (la función actual) como callback
+                abrirModalGestionDosis(dosisId, medicamento, paciente, inicializarDashboardEnfermeria);
+            });
+        });
 
     } catch (error) {
         contenedor.innerHTML = `<div class="alert alert-danger shadow-sm"><i class="bi bi-exclamation-triangle-fill me-2"></i> Error: ${error.message}</div>`;
