@@ -1,5 +1,5 @@
-// JavaScript/Controladores/IndexControlador.js
 import { inicializarDashboardAdmision } from './DashboardAdmisionControlador.js';
+import { inicializarDashboardEnfermeria } from './DashboardEnfermeriaControlador.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. GUARDIÁN DE AUTENTICACIÓN: Verificar si hay un token en sessionStorage
@@ -43,9 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 4. Renderizado condicional según Rol (¡Ahora sí está al nivel correcto!)
+    // 4. Renderizado condicional según Rol
     if (rol === 'Admision' || rol === 'Admisión') {
         inicializarDashboardAdmision();
+    } else if (rol === 'Enfermera' || rol === 'Enfermero') {
+        inicializarDashboardEnfermeria();
     } else {
         document.getElementById('contenedor-dinamico').innerHTML = `
             <div class="alert alert-info shadow-sm">
