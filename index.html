@@ -275,6 +275,132 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modalGestionMedica" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow" style="border-radius: 12px;">
+                <div class="modal-header bg-primary text-white border-bottom-0" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title fw-bold text-white"><i class="bi bi-clipboard2-pulse me-2"></i>Centro de Comando Médico</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                
+                <div class="modal-body p-0">
+                    <div class="bg-light p-3 border-bottom d-flex justify-content-between align-items-center">
+                        <div>
+                            <input type="hidden" id="modal-medico-internacion-id">
+                            <input type="hidden" id="modal-medico-diagnostico-id"> <h6 class="fw-bold text-oscuro mb-0" id="lbl-medico-paciente">Nombre del Paciente</h6>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">Internación Activa</span>
+                    </div>
+
+                    <ul class="nav nav-tabs nav-fill bg-light border-bottom-0" id="medicoTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active fw-bold" id="tab-diagnostico" data-bs-toggle="tab" data-bs-target="#panel-diagnostico" type="button" role="tab">1. Diagnóstico</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link fw-bold disabled" id="tab-tratamiento" data-bs-toggle="tab" data-bs-target="#panel-tratamiento" type="button" role="tab">2. Prescripción</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content p-4" id="medicoTabsContent">
+                        
+                        <div class="tab-pane fade show active" id="panel-diagnostico" role="tabpanel">
+                            <div class="alert alert-info border-info bg-info bg-opacity-10 small mb-3">
+                                <i class="bi bi-info-circle-fill me-2"></i>Debe registrar un diagnóstico para habilitar la prescripción de tratamientos.
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-oscuro small">Código CIE-10 (Enfermedad)</label>
+                                <input type="text" class="form-control" id="input-cie10" placeholder="Ej: J18.9 (Neumonía no especificada)..." required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold text-oscuro small">Observaciones Clínicas</label>
+                                <textarea class="form-control" id="input-obs-diagnostico" rows="3" placeholder="Detalle los síntomas y estado del paciente..." required></textarea>
+                            </div>
+                            <div class="text-end">
+                                <button type="button" class="btn btn-primary px-4 fw-bold" id="btn-guardar-diagnostico">Guardar Diagnóstico</button>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="panel-tratamiento" role="tabpanel">
+                            <div class="row">
+                                <div class="col-md-7 border-end pe-4">
+                                    <h6 class="fw-bold text-oscuro mb-3"><i class="bi bi-prescription me-2 text-primary"></i>Nueva Receta</h6>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold text-oscuro small">Medicamento</label>
+                                        <select class="form-select" id="select-medicamento" required>
+                                            <option value="" selected disabled>Seleccione medicamento...</option>
+                                            <option value="CCCCCCCC-3333-3333-3333-CCCCCCCCCCCC">Amoxicilina</option>
+                                            <option value="DDDDDDDD-4444-4444-4444-DDDDDDDDDDDD">Ibuprofeno</option>
+                                            <!-- <option value="33333333-3333-3333-3333-333333333333">Paracetamol 1g</option> -->
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label fw-semibold text-oscuro small">Dosis</label>
+                                            <input type="number" class="form-control" id="input-dosis" min="0.1" step="0.1" required>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label fw-semibold text-oscuro small">Unidad</label>
+                                            <select class="form-select" id="select-unidad" required>
+                                                <option value="" selected disabled>...</option>
+                                                <option value="11111111-5555-5555-5555-111111111111">mg</option>
+                                                <option value="22222222-5555-5555-5555-222222222222">ml</option>
+                                                <!-- <option value="66666666-6666-6666-6666-666666666666">comprimidos</option> -->
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold text-oscuro small">Frecuencia</label>
+                                        <select class="form-select" id="select-frecuencia" required>
+                                            <option value="" selected disabled>Seleccione...</option>
+                                            <option value="33333333-6666-6666-6666-333333333333">Cada 8 horas</option>
+                                            <option value="44444444-6666-6666-6666-444444444444">Cada 12 horas</option>
+                                            <!-- <option value="99999999-9999-9999-9999-999999999999">Cada 24 horas</option> -->
+                                        </select>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label fw-semibold text-oscuro small">Fecha Inicio</label>
+                                            <input type="datetime-local" class="form-control" id="input-fecha-inicio" required>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label fw-semibold text-oscuro small">Fecha Fin</label>
+                                            <input type="datetime-local" class="form-control" id="input-fecha-fin" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-5 ps-4 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <h6 class="fw-bold text-oscuro mb-3"><i class="bi bi-robot me-2 text-primary"></i>Asistencia de IA</h6>
+                                        <div class="alert alert-secondary border-secondary bg-light small mb-3">
+                                            El sistema analizará el tratamiento propuesto contra la historia clínica del paciente para prevenir interacciones o alergias.
+                                        </div>
+                                        
+                                        <div class="form-check form-switch mt-3">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="switch-omitir-ia">
+                                            <label class="form-check-label fw-bold text-oscuro" for="switch-omitir-ia">Omitir Validación IA</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-4 pt-3 border-top text-end">
+                                        <button type="button" class="btn btn-primary w-100 fw-bold py-2 shadow-sm" id="btn-prescribir">
+                                            <i class="bi bi-send-check me-2"></i>Emitir Prescripción
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- CDN de SweetAlert2 -->
