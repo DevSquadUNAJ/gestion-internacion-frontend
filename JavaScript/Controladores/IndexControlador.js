@@ -1,5 +1,6 @@
 import { inicializarDashboardAdmision } from './DashboardAdmisionControlador.js';
 import { inicializarDashboardEnfermeria } from './DashboardEnfermeriaControlador.js';
+import { inicializarDashboardMedico } from './DashboardMedicoControlador.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. GUARDIÁN DE AUTENTICACIÓN: Verificar si hay un token en sessionStorage
@@ -48,6 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
         inicializarDashboardAdmision();
     } else if (rol === 'Enfermera' || rol === 'Enfermero') {
         inicializarDashboardEnfermeria();
+    } else if (rol === 'Medico' || rol === 'Médico') {
+        inicializarDashboardMedico();
     } else {
         document.getElementById('contenedor-dinamico').innerHTML = `
             <div class="alert alert-info shadow-sm">
