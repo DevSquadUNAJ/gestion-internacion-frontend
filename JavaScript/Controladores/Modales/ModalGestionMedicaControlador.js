@@ -1,5 +1,6 @@
 // JavaScript/Controladores/Modales/ModalGestionMedicaControlador.js
 import { MedicoServicio } from '../../Servicios/MedicoServicio.js';
+import { abrirModalValidacionIA } from './ModalValidacionIAControlador.js';
 
 export const abrirModalGestionMedica = (internacionId, nombrePaciente) => {
     const modalElemento = document.getElementById('modalGestionMedica');
@@ -106,21 +107,25 @@ export const abrirModalGestionMedica = (internacionId, nombrePaciente) => {
         try {
             const respuesta = await MedicoServicio.prescribirTratamiento(solicitud);
             
-            // Cerramos modal y mostramos resultado
+            // 1. Cerramos el modal actual
             modalBootstrap.hide();
 
-            // Si omitimos IA, la respuesta será directa. Si no, capaz traiga datos de AnalisisIA. 
-            // Vamos a mostrar un mensaje genérico por ahora de éxito.
-            let mensajeExito = 'El tratamiento ha sido recetado y enviado a enfermería.';
-            if (!solicitud.omitirValidacionIA && respuesta.analisisIA) {
-                 mensajeExito += `<br><br><b>Validación IA:</b> Nivel de Riesgo ${respuesta.analisisIA.nivelRiesgo}`;
+            // 2. Evaluamos la respuesta (Si el estado es Pendiente de Validación por la IA)
+            if (respuesta.estado === 'PendienteValidacion' && respuesta.analisisIA) {
+                
+                // ¡LA MAGIA! Abrimos el nuevo modal, pasándole los datos de la IA y la solicitud original
+                abrirModalValidacionIA(respuesta.tratamientoId, respuesta.analisisIA, solicitud);
+                
+            } else {
+                // Si usamos el camino rápido (Omitir IA) o si el backend lo aprobó directo
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: 'Prescripción Exitosa', 
+                    text: 'El tratamiento ha sido recetado y enviado a enfermería.',
+                    timer: 2000, 
+                    showConfirmButton: false 
+                });
             }
-
-            Swal.fire({ 
-                icon: 'success', 
-                title: 'Prescripción Exitosa', 
-                html: mensajeExito
-            });
 
         } catch (error) {
             Swal.fire({ icon: 'error', title: 'Error al prescribir', text: error.message });
