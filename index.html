@@ -3,11 +3,411 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Internaciones</title>
+    <link rel="icon" type="image/x-icon" href="Recursos/favicon.ico">
+    <title>MediCare | Gestión de Internaciones</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Iconos de Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Estilos Propios -->
     <link rel="stylesheet" href="Estilos/Paleta.css">
+    <link rel="stylesheet" href="Estilos/Secciones/EstructuraBase.css">
 </head>
 <body>
-    <h1>Frontend Inicializado</h1>
+
+    <div class="contenedor-principal">
+        
+        <!-- MENÚ LATERAL -->
+        <aside class="menu-lateral p-3 shadow-lg">
+            <div class="d-flex align-items-center mb-4 pb-3 border-bottom border-secondary">
+                <i class="bi bi-hospital text-white fs-3 me-2"></i>
+                <h5 class="mb-0 text-white fw-bold">Clínica<br><small class="fw-normal fs-6 text-white-50">Gestión Integral</small></h5>
+            </div>
+
+            <ul class="nav flex-column mb-auto">
+                <!-- Por ahora solo ponemos el Panel Principal, luego agregaremos con JS según el rol -->
+                <li class="nav-item">
+                    <a href="#" class="nav-link active">
+                        <i class="bi bi-grid me-2"></i> Panel Principal
+                    </a>
+                </li>
+            </ul>
+
+            <hr class="border-secondary">
+            
+            <div class="dropdown">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none" id="btn-cerrar-sesion">
+                    <i class="bi bi-box-arrow-left fs-4 me-2"></i>
+                    <strong>Cerrar Sesión</strong>
+                </a>
+            </div>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="contenido-derecho">
+            
+            <!-- ENCABEZADO SUPERIOR -->
+            <header class="encabezado-superior">
+                <div>
+                    <!-- El título cambiará según en qué pantalla estemos luego -->
+                    <h4 class="mb-0 fw-bold text-oscuro" id="titulo-pantalla">Panel Principal</h4>
+                </div>
+                <div class="d-flex align-items-center">
+                    <div class="text-end me-3">
+                        <!-- Aquí inyectamos el nombre de usuario y rol desde JS -->
+                        <h6 class="mb-0 fw-bold text-oscuro" id="lbl-username">Cargando...</h6>
+                        <small class="text-muted" id="lbl-rol">...</small>
+                    </div>
+                    <div class="bg-oscuro text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-person-fill fs-5"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ESPACIO PARA INYECTAR LAS TARJETAS / VISTAS DINÁMICAS -->
+            <div id="contenedor-dinamico">
+                <div class="alert alert-info border-0 shadow-sm" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i> Bienvenido al sistema. Pronto aquí verás el módulo correspondiente a tu rol.
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div class="modal fade" id="modalGestionarCama" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow" style="border-radius: 12px;">
+                <div class="modal-header bg-light border-bottom-0" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title fw-bold text-oscuro"><i class="bi bi-gear-fill text-primary me-2"></i>Gestionar Cama</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                    <form id="form-cambiar-estado">
+                        <input type="hidden" id="modal-cama-id">
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-oscuro small">Estado Actual</label>
+                            <input type="text" id="modal-estado-actual" class="form-control bg-light" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="select-nuevo-estado" class="form-label fw-semibold text-oscuro small">Nuevo Estado</label>
+                            <select class="form-select" id="select-nuevo-estado" required>
+                                <option value="" selected disabled>Seleccione un estado...</option>
+                                <option value="Disponible">Disponible</option>
+                                <option value="Ocupada" disabled>Ocupada (Solo automático por internación)</option>
+                                <option value="Limpieza">Limpieza</option>
+                                <option value="Mantenimiento">Mantenimiento</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="input-motivo" class="form-label fw-semibold text-oscuro small">Motivo (Opcional)</label>
+                            <textarea class="form-control" id="input-motivo" rows="2" placeholder="Ej: Cambio de sábanas completado..."></textarea>
+                        </div>
+                    </form>
+
+                    <div id="acciones-cama-ocupada" class="d-none text-center">
+                        <div class="alert alert-warning border-0 bg-warning bg-opacity-10 shadow-sm mb-4">
+                            <i class="bi bi-info-circle-fill text-warning me-2"></i>
+                            Esta cama se encuentra ocupada por un paciente.
+                        </div>
+                        <input type="hidden" id="modal-internacion-id">
+                        
+                        <div id="bloque-botones-ocupada" class="d-grid gap-2">
+                            <button type="button" class="btn btn-success btn-lg fw-bold shadow-sm" id="btn-procesar-alta">
+                                <i class="bi bi-person-walking me-2"></i> Procesar Alta Médica
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-lg fw-bold shadow-sm" id="btn-iniciar-traslado">
+                                <i class="bi bi-arrow-left-right me-2"></i> Trasladar Paciente
+                            </button>
+                        </div>
+
+                        <div id="formulario-traslado" class="d-none text-start mt-3 pt-3 border-top">
+                            <h6 class="fw-bold text-oscuro mb-3">
+                                <i class="bi bi-arrow-left-right text-primary me-2"></i>Formulario de Traslado
+                            </h6>
+                            
+                            <div class="mb-3">
+                                <label for="select-traslado-sector" class="form-label fw-semibold text-oscuro small">Sector Destino</label>
+                                <select class="form-select" id="select-traslado-sector" required>
+                                    <option value="" selected disabled>Seleccione un sector...</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="select-traslado-cama" class="form-label fw-semibold text-oscuro small">Cama Disponible</label>
+                                <select class="form-select" id="select-traslado-cama" required disabled>
+                                    <option value="" selected disabled>Seleccione primero un sector...</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="input-traslado-motivo" class="form-label fw-semibold text-oscuro small">Motivo del Traslado</label>
+                                <textarea class="form-control" id="input-traslado-motivo" rows="2" placeholder="Ej: Traslado a Unidad Coronaria por requerimiento clínico..." required></textarea>
+                            </div>
+
+                            <div class="d-flex gap-2 justify-content-end mt-4">
+                                <button type="button" class="btn btn-light" id="btn-cancelar-traslado">Atrás</button>
+                                <button type="button" class="btn btn-primario px-4" id="btn-confirmar-traslado">Confirmar Traslado</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="acciones-cama-disponible" class="d-none mt-2 text-start">
+                        <hr class="my-4 text-secondary">
+                        <h6 class="fw-bold text-oscuro mb-3">
+                            <i class="bi bi-person-plus-fill text-success me-2"></i>Registrar Nueva Internación
+                        </h6>
+                        <div class="alert alert-success border-0 bg-success bg-opacity-10 shadow-sm mb-4">
+                            <i class="bi bi-check-circle-fill text-success me-2"></i>
+                            Cama disponible para nueva internación.
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-oscuro small">Buscar Paciente (DNI)</label>
+                            <div class="input-group shadow-sm rounded">
+                                <input type="text" id="input-buscar-dni" class="form-control border-primary" placeholder="Ingrese el DNI sin puntos...">
+                                <button class="btn btn-primario" type="button" id="btn-buscar-paciente">
+                                    <i class="bi bi-search"></i> Buscar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="tarjeta-paciente-encontrado" class="card border-success mb-3 d-none shadow-sm">
+                            <div class="card-body py-2 px-3 bg-success bg-opacity-10 rounded d-flex justify-content-between align-items-center">
+                                <div>
+                                    <input type="hidden" id="hidden-paciente-id">
+                                    <p class="mb-0 fw-bold text-oscuro" id="lbl-paciente-nombre">Nombre del Paciente</p>
+                                    <small class="text-muted" id="lbl-paciente-datos">DNI: ...</small>
+                                </div>
+                                <i class="bi bi-person-check-fill text-success fs-3"></i>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="input-motivo-internacion" class="form-label fw-semibold text-oscuro small">Motivo de Ingreso</label>
+                            <textarea class="form-control shadow-sm" id="input-motivo-internacion" rows="2" placeholder="Ej: Neumonía, Observación en guardia..."></textarea>
+                        </div>
+
+                        <button type="button" class="btn btn-success w-100 fw-bold shadow-sm mt-2" id="btn-registrar-internacion" disabled>
+                            <i class="bi bi-clipboard2-pulse-fill me-2"></i>Registrar Internación
+                        </button>
+                    </div>
+                    
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primario px-4" id="btn-guardar-estado">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA GESTIONAR DOSIS (CU-16 y CU-17) -->
+    <div class="modal fade" id="modalGestionDosis" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow" style="border-radius: 12px;">
+                <div class="modal-header bg-danger text-white border-bottom-0" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title fw-bold text-white"><i class="bi bi-capsule me-2"></i>Gestionar Dosis</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- Resumen del Paciente y Medicamento -->
+                    <div class="alert border-danger bg-danger bg-opacity-10 mb-4 p-3">
+                        <input type="hidden" id="modal-dosis-id">
+                        <h6 class="fw-bold text-danger mb-1" id="lbl-dosis-medicamento">Medicamento</h6>
+                        <small class="text-oscuro" id="lbl-dosis-paciente"><i class="bi bi-person-fill me-1"></i> Paciente</small>
+                    </div>
+
+                    <!-- Selector de Acción a realizar -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-oscuro">Acción a registrar</label>
+                        <select class="form-select border-danger text-danger fw-semibold" id="select-accion-dosis">
+                            <option value="administrar" selected>Registrar Administración de Dosis</option>
+                            <option value="omitir">Registrar Omisión de Dosis</option>
+                        </select>
+                    </div>
+
+                    <hr class="text-muted my-3">
+
+                    <!-- SECCIÓN: CU-16 (Administrar) -->
+                    <div id="seccion-administrar-dosis">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-oscuro small">Fecha y Hora de Suministro</label>
+                            <input type="datetime-local" id="input-fecha-suministro" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-oscuro small">Observaciones (Opcional)</label>
+                            <textarea class="form-control" id="input-obs-administrar" rows="2" placeholder="Ej: Administrado sin complicaciones..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN: CU-17 (Omitir) - Oculta por defecto -->
+                    <div id="seccion-omitir-dosis" class="d-none">
+                        <div class="alert alert-warning border-warning bg-warning bg-opacity-10 shadow-sm p-2 mb-3 small">
+                            <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>La dosis se marcará como omitida y se notificará al médico.
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-oscuro small">Motivo de Omisión</label>
+                            <select class="form-select" id="select-motivo-omision" required>
+                                <option value="" selected disabled>Seleccione un motivo...</option>
+                                <option value="Rechazo del paciente">Rechazo del paciente</option>
+                                <option value="Paciente dormido">Paciente dormido</option>
+                                <option value="Contraindicación clínica">Contraindicación clínica (Fiebre, etc.)</option>
+                                <option value="Falta de stock">Falta de stock en farmacia</option>
+                                <option value="Ausencia en sector">Paciente ausente (Estudios, quirófano)</option>
+                                <option value="Otro">Otro motivo</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-oscuro small">Observaciones Adicionales</label>
+                            <textarea class="form-control" id="input-obs-omitir" rows="2" placeholder="Detalle la situación..."></textarea>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger px-4" id="btn-guardar-dosis">Confirmar Registro</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalGestionMedica" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow" style="border-radius: 12px;">
+                <div class="modal-header bg-primary text-white border-bottom-0" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title fw-bold text-white"><i class="bi bi-clipboard2-pulse me-2"></i>Centro de Comando Médico</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                
+                <div class="modal-body p-0">
+                    <div class="bg-light p-3 border-bottom d-flex justify-content-between align-items-center">
+                        <div>
+                            <input type="hidden" id="modal-medico-internacion-id">
+                            <input type="hidden" id="modal-medico-diagnostico-id"> <h6 class="fw-bold text-oscuro mb-0" id="lbl-medico-paciente">Nombre del Paciente</h6>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">Internación Activa</span>
+                    </div>
+
+                    <ul class="nav nav-tabs nav-fill bg-light border-bottom-0" id="medicoTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active fw-bold" id="tab-diagnostico" data-bs-toggle="tab" data-bs-target="#panel-diagnostico" type="button" role="tab">1. Diagnóstico</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link fw-bold disabled" id="tab-tratamiento" data-bs-toggle="tab" data-bs-target="#panel-tratamiento" type="button" role="tab">2. Prescripción</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content p-4" id="medicoTabsContent">
+                        
+                        <div class="tab-pane fade show active" id="panel-diagnostico" role="tabpanel">
+                            <div class="alert alert-info border-info bg-info bg-opacity-10 small mb-3">
+                                <i class="bi bi-info-circle-fill me-2"></i>Debe registrar un diagnóstico para habilitar la prescripción de tratamientos.
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-oscuro small">Código CIE-10 (Enfermedad)</label>
+                                <input type="text" class="form-control" id="input-cie10" placeholder="Ej: J18.9 (Neumonía no especificada)..." required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold text-oscuro small">Observaciones Clínicas</label>
+                                <textarea class="form-control" id="input-obs-diagnostico" rows="3" placeholder="Detalle los síntomas y estado del paciente..." required></textarea>
+                            </div>
+                            <div class="text-end">
+                                <button type="button" class="btn btn-primary px-4 fw-bold" id="btn-guardar-diagnostico">Guardar Diagnóstico</button>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="panel-tratamiento" role="tabpanel">
+                            <div class="row">
+                                <div class="col-md-7 border-end pe-4">
+                                    <h6 class="fw-bold text-oscuro mb-3"><i class="bi bi-prescription me-2 text-primary"></i>Nueva Receta</h6>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold text-oscuro small">Medicamento</label>
+                                        <select class="form-select" id="select-medicamento" required>
+                                            <option value="" selected disabled>Seleccione medicamento...</option>
+                                            <option value="CCCCCCCC-3333-3333-3333-CCCCCCCCCCCC">Amoxicilina</option>
+                                            <option value="DDDDDDDD-4444-4444-4444-DDDDDDDDDDDD">Ibuprofeno</option>
+                                            <!-- <option value="33333333-3333-3333-3333-333333333333">Paracetamol 1g</option> -->
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label fw-semibold text-oscuro small">Dosis</label>
+                                            <input type="number" class="form-control" id="input-dosis" min="0.1" step="0.1" required>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label fw-semibold text-oscuro small">Unidad</label>
+                                            <select class="form-select" id="select-unidad" required>
+                                                <option value="" selected disabled>...</option>
+                                                <option value="11111111-5555-5555-5555-111111111111">mg</option>
+                                                <option value="22222222-5555-5555-5555-222222222222">ml</option>
+                                                <!-- <option value="66666666-6666-6666-6666-666666666666">comprimidos</option> -->
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold text-oscuro small">Frecuencia</label>
+                                        <select class="form-select" id="select-frecuencia" required>
+                                            <option value="" selected disabled>Seleccione...</option>
+                                            <option value="33333333-6666-6666-6666-333333333333">Cada 8 horas</option>
+                                            <option value="44444444-6666-6666-6666-444444444444">Cada 12 horas</option>
+                                            <!-- <option value="99999999-9999-9999-9999-999999999999">Cada 24 horas</option> -->
+                                        </select>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label fw-semibold text-oscuro small">Fecha Inicio</label>
+                                            <input type="datetime-local" class="form-control" id="input-fecha-inicio" required>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label fw-semibold text-oscuro small">Fecha Fin</label>
+                                            <input type="datetime-local" class="form-control" id="input-fecha-fin" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-5 ps-4 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <h6 class="fw-bold text-oscuro mb-3"><i class="bi bi-robot me-2 text-primary"></i>Asistencia de IA</h6>
+                                        <div class="alert alert-secondary border-secondary bg-light small mb-3">
+                                            El sistema analizará el tratamiento propuesto contra la historia clínica del paciente para prevenir interacciones o alergias.
+                                        </div>
+                                        
+                                        <div class="form-check form-switch mt-3">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="switch-omitir-ia">
+                                            <label class="form-check-label fw-bold text-oscuro" for="switch-omitir-ia">Omitir Validación IA</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-4 pt-3 border-top text-end">
+                                        <button type="button" class="btn btn-primary w-100 fw-bold py-2 shadow-sm" id="btn-prescribir">
+                                            <i class="bi bi-send-check me-2"></i>Emitir Prescripción
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- CDN de SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    </body>
+    <!-- Script Controlador Principal -->
+    <script type="module" src="JavaScript/Controladores/IndexControlador.js"></script>
+</body>
 </html>
