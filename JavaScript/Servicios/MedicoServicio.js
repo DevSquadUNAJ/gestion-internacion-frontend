@@ -22,4 +22,17 @@ export class MedicoServicio {
         const url = `${API_URLS.Clinico}/api/Tratamientos`;
         return await ApiCliente.post(url, tratamientoSolicitud);
     }
+
+    // Confirmar tratamiento (con o sin forzado)
+    static async confirmarTratamiento(tratamientoId, datosConfirmacion) {
+        const url = `${API_URLS.Clinico}/api/Tratamientos/${tratamientoId}/confirmar`;
+        // datosConfirmacion incluirá la justificación clínica si fue forzado
+        return await ApiCliente.post(url, datosConfirmacion);
+    }
+
+    // Cancelar tratamiento rechazado por la IA
+    static async cancelarTratamiento(tratamientoId) {
+        const url = `${API_URLS.Clinico}/api/Tratamientos/${tratamientoId}/cancelar`;
+        return await ApiCliente.post(url, {}); // Mandamos un body vacío porque el endpoint es POST
+    }
 }
