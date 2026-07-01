@@ -14,7 +14,17 @@ export class ApiCliente {
             window.location.href = 'Paginas/login.html';
             throw new Error("Su sesión ha expirado.");
         }
-        if (!respuesta.ok) throw new Error(`Error en la petición: ${respuesta.statusText}`);
+        
+        if (!respuesta.ok) {
+            let mensajeError = respuesta.statusText;
+            try {
+                const errorJson = await respuesta.json();
+                mensajeError = errorJson.detail || errorJson.title || mensajeError;
+            } catch (e) { /* Si no es JSON, dejamos el genérico */ }
+            
+            throw new Error(mensajeError);
+        }
+        
         if (respuesta.status === 204) return null;
         return await respuesta.json();
     }
@@ -115,5 +125,4 @@ export class ApiCliente {
         const text = await respuesta.text();
         return text ? JSON.parse(text) : null;
     }
-
 }
