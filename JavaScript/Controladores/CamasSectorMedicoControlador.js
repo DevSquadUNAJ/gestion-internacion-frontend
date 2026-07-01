@@ -55,10 +55,10 @@ export const inicializarVistaCamasMedico = async (sectorId, nombreSector, callba
                         // TODO: Aquí llamaremos al modal del médico en el próximo paso
                         boton.addEventListener('click', (e) => {
                             const internacionId = e.currentTarget.getAttribute('data-internacion-id');
+                            const pacienteId = e.currentTarget.getAttribute('data-paciente-id'); 
                             const nombrePaciente = e.currentTarget.closest('.card').querySelector('p.text-oscuro').textContent.trim();
                             
-                            // LLAMADA AL MODAL DEL MÉDICO
-                            abrirModalGestionMedica(internacionId, nombrePaciente);
+                            abrirModalGestionMedica(internacionId, nombrePaciente, pacienteId);
                         });
                     });
                 }

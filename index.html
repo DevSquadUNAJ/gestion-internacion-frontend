@@ -295,16 +295,56 @@
 
                     <ul class="nav nav-tabs nav-fill bg-light border-bottom-0" id="medicoTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active fw-bold" id="tab-diagnostico" data-bs-toggle="tab" data-bs-target="#panel-diagnostico" type="button" role="tab">1. Diagnóstico</button>
+                            <button class="nav-link active fw-bold" id="tab-historia" data-bs-toggle="tab" data-bs-target="#panel-historia" type="button" role="tab"><i class="bi bi-file-medical me-2"></i>1. Historia Clínica</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link fw-bold disabled" id="tab-tratamiento" data-bs-toggle="tab" data-bs-target="#panel-tratamiento" type="button" role="tab">2. Prescripción</button>
+                            <button class="nav-link fw-bold" id="tab-diagnostico" data-bs-toggle="tab" data-bs-target="#panel-diagnostico" type="button" role="tab">2. Diagnóstico</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link fw-bold disabled" id="tab-tratamiento" data-bs-toggle="tab" data-bs-target="#panel-tratamiento" type="button" role="tab">3. Prescripción</button>
                         </li>
                     </ul>
 
                     <div class="tab-content p-4" id="medicoTabsContent">
-                        
-                        <div class="tab-pane fade show active" id="panel-diagnostico" role="tabpanel">
+                        <div class="tab-pane fade show active" id="panel-historia" role="tabpanel">
+                            <div id="hc-cargando" class="text-center py-4">
+                                <div class="spinner-border text-primary"></div>
+                                <p class="text-muted mt-2">Buscando historia clínica...</p>
+                            </div>
+                            
+                            <div id="hc-sin-datos" class="alert alert-warning d-none text-center py-4 shadow-sm border-warning">
+                                <i class="bi bi-exclamation-triangle fs-1 text-warning"></i>
+                                <h5 class="fw-bold mt-2">Sin Historia Clínica</h5>
+                                <p class="mb-0">Este paciente aún no posee una historia clínica registrada en el sistema.</p>
+                            </div>
+
+                            <div id="hc-contenido" class="d-none">
+                                <div class="row">
+                                    <div class="col-md-4 border-end">
+                                        <h6 class="fw-bold text-primary border-bottom pb-2">Datos Generales</h6>
+                                        <p class="mb-1 small text-muted">Grupo Sanguíneo</p>
+                                        <p class="fw-bold text-danger mb-3" id="hc-sangre">-</p>
+                                        
+                                        <p class="mb-1 small text-muted">Alergias</p>
+                                        <p class="fw-semibold text-oscuro mb-3" id="hc-alergias">-</p>
+                                        
+                                        <p class="mb-1 small text-muted">Antecedentes</p>
+                                        <p class="fw-semibold text-oscuro mb-0" id="hc-antecedentes">-</p>
+                                    </div>
+                                    <div class="col-md-8 pl-md-4">
+                                        <h6 class="fw-bold text-primary border-bottom pb-2">Tratamientos Activos</h6>
+                                        <ul class="list-group list-group-flush mb-4 shadow-sm rounded" id="hc-lista-tratamientos">
+                                            </ul>
+
+                                        <h6 class="fw-bold text-primary border-bottom pb-2">Diagnósticos Previos</h6>
+                                        <ul class="list-group list-group-flush shadow-sm rounded" id="hc-lista-diagnosticos">
+                                            </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="panel-diagnostico" role="tabpanel">
                             <div class="alert alert-info border-info bg-info bg-opacity-10 small mb-3">
                                 <i class="bi bi-info-circle-fill me-2"></i>Debe registrar un diagnóstico para habilitar la prescripción de tratamientos.
                             </div>

@@ -38,7 +38,8 @@ export const crearTarjetaCama = (cama) => {
                 <div class="card-footer bg-white border-0 pb-3">
                     <button class="btn btn-outline-primary btn-sm rounded-pill w-100 fw-bold" 
                             data-cama-id="${cama.camaId}"
-                            data-internacion-id="${cama.internacionId || ''}"> Gestionar
+                            data-internacion-id="${cama.internacionId || ''}"
+                            data-paciente-id="${cama.pacienteId || ''}"> Gestionar
                     </button>
                 </div>
             </div>

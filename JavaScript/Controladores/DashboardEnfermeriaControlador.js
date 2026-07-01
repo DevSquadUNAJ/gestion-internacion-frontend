@@ -39,7 +39,9 @@ export const inicializarDashboardEnfermeria = async () => {
         let htmlTareas = '<div class="row">';
         
         tareas.forEach(tarea => {
-            const fechaProg = new Date(tarea.fechaProgramada);
+            // PARCHE ZONA HORARIA: Forzar que JS sepa que el backend manda UTC agregando la 'Z' si falta
+            const cadenaFecha = tarea.fechaProgramada.endsWith('Z') ? tarea.fechaProgramada : tarea.fechaProgramada + 'Z';
+            const fechaProg = new Date(cadenaFecha);
             const estaAtrasada = fechaProg < ahora;
             
             // Colores semánticos según prioridad/atraso
