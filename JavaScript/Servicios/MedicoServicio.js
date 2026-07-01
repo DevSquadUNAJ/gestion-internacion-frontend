@@ -35,4 +35,18 @@ export class MedicoServicio {
         const url = `${API_URLS.Clinico}/api/Tratamientos/${tratamientoId}/cancelar`;
         return await ApiCliente.post(url, {}); // Mandamos un body vacío porque el endpoint es POST
     }
+
+    // Obtener Historia Clínica por Paciente
+    static async obtenerHistoriaClinica(pacienteId) {
+        const url = `${API_URLS.Clinico}/api/HistoriaClinica/paciente/${pacienteId}`;
+        try {
+            return await ApiCliente.get(url);
+        } catch (error) {
+            // Si devuelve 404 Not Found, devolvemos null para que el controlador lo maneje
+            if (error.message.includes("404") || error.message.toLowerCase().includes("not found")) {
+                return null;
+            }
+            throw error; // Si es otro error (500, red), lo lanzamos
+        }
+    }
 }
