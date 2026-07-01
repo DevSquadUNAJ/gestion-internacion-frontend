@@ -1,9 +1,9 @@
 // JavaScript/Controladores/Modales/ModalGestionCamaControlador.js
 import { AdmisionServicio } from '../../Servicios/AdmisionServicio.js';
 
-export const abrirModalGestionCama = (camaId, internacionId, estadoActual, callbackRecargarCamas) => {
+export const abrirModalGestionCama = (camaId, internacionId, estadoActual, callbackRecargarCamas, accion) => {
     const modalElemento = document.getElementById('modalGestionarCama');
-    const modalBootstrap = new bootstrap.Modal(modalElemento);
+    const modalBootstrap = bootstrap.Modal.getOrCreateInstance(modalElemento);
 
     // 1. Preparar el DOM base
     document.getElementById('modal-cama-id').value = camaId;
@@ -14,37 +14,46 @@ export const abrirModalGestionCama = (camaId, internacionId, estadoActual, callb
     const btnGuardarActual = document.getElementById('btn-guardar-estado'); 
     const seccionCamaDisponible = document.getElementById('acciones-cama-disponible');
 
-    // 2. Mutación de Interfaz según Estado
+    // 2. Mutación inicial base de Interfaz según Estado
     if (estadoActual === 'Ocupada') {
-        document.getElementById('bloque-botones-ocupada').classList.remove('d-none');
-        document.getElementById('formulario-traslado').classList.add('d-none');
+        seccionCamaDisponible.classList.add('d-none');
         formCambiarEstado.classList.add('d-none');
         btnGuardarActual.classList.add('d-none');
         seccionCamaOcupada.classList.remove('d-none');
-        seccionCamaDisponible.classList.add('d-none'); // NUEVO
+
+        // Mostramos el bloque contenedor para que los botones existan en el DOM
+        document.getElementById('bloque-botones-ocupada').classList.remove('d-none');
+        document.getElementById('formulario-traslado').classList.add('d-none');
+        
+        // Restauramos visibilidad por defecto para limpiar estados de aperturas previas
+        document.getElementById('btn-iniciar-traslado').classList.remove('d-none');
+        document.getElementById('btn-procesar-alta').classList.remove('d-none');
+
     } else if (estadoActual === 'Disponible') {
-        // MODO: DISPONIBLE (CU-01 Internación y CU-02 Cambiar Estado)
         seccionCamaOcupada.classList.add('d-none');
         
-        formCambiarEstado.classList.remove('d-none');
-        btnGuardarActual.classList.remove('d-none');
+        if (accion === 'internar') {
+            formCambiarEstado.classList.add('d-none');
+            btnGuardarActual.classList.add('d-none');
+            seccionCamaDisponible.classList.remove('d-none');
+        } else if (accion === 'estado') {
+            seccionCamaDisponible.classList.add('d-none');
+            formCambiarEstado.classList.remove('d-none');
+            btnGuardarActual.classList.remove('d-none');
+        }
         
-        seccionCamaDisponible.classList.remove('d-none');
-        
-        // Cargar los datos en el formulario de estado
+        // Resetear datos genéricos del subformulario de ingreso
         document.getElementById('modal-estado-actual').value = estadoActual;
         document.getElementById('select-nuevo-estado').value = "";
         document.getElementById('input-motivo').value = "";
-
-        // Resetear formulario de internación
         document.getElementById('input-buscar-dni').value = '';
+        document.getElementById('input-motivo-internacion').value = "";
         document.getElementById('tarjeta-paciente-encontrado').classList.add('d-none');
-        document.getElementById('hidden-paciente-id').value = '';
-        document.getElementById('input-motivo-internacion').value = '';
         document.getElementById('btn-registrar-internacion').disabled = true;
     } else {
+        // Limpieza / Mantenimiento
         seccionCamaOcupada.classList.add('d-none');
-        seccionCamaDisponible.classList.add('d-none'); // NUEVO
+        seccionCamaDisponible.classList.add('d-none'); 
         formCambiarEstado.classList.remove('d-none');
         btnGuardarActual.classList.remove('d-none');
         document.getElementById('modal-estado-actual').value = estadoActual;
@@ -52,7 +61,27 @@ export const abrirModalGestionCama = (camaId, internacionId, estadoActual, callb
         document.getElementById('input-motivo').value = "";
     }
 
-    modalBootstrap.show();
+    // --- LÓGICA DE UX: Bloquear estados redundantes en el Select ---
+    const selectEstado = document.getElementById('select-nuevo-estado');
+    Array.from(selectEstado.options).forEach(opcion => {
+        if (opcion.value === 'Ocupada') {
+            opcion.disabled = true;
+            opcion.style.color = '#adb5bd';
+            opcion.text = 'Ocupada (Automático al internar)';
+        } else if (opcion.value === estadoActual) {
+            opcion.disabled = true;
+            opcion.style.color = '#adb5bd';
+            opcion.text = `${opcion.value} (Estado Actual)`;
+        } else {
+            opcion.disabled = false;
+            opcion.style.color = '';
+            opcion.text = opcion.value;
+        }
+    });
+
+    // =========================================================================
+    // ATAR LISTENERS DE ACCIONES (Tus funciones de guardado se mantienen aquí)
+    // =========================================================================
 
     // --- LÓGICA CU-02: CAMBIAR ESTADO ---
     const btnGuardarViejo = document.getElementById('btn-guardar-estado');
@@ -63,12 +92,9 @@ export const abrirModalGestionCama = (camaId, internacionId, estadoActual, callb
         const idCama = document.getElementById('modal-cama-id').value;
         const nuevoEstado = document.getElementById('select-nuevo-estado').value;
         const motivo = document.getElementById('input-motivo').value;
-
         if (!nuevoEstado) return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Seleccione un estado.' });
-
         btnGuardarNuevo.disabled = true;
         btnGuardarNuevo.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Guardando...';
-
         try {
             await AdmisionServicio.cambiarEstadoCama(idCama, nuevoEstado, motivo);
             modalBootstrap.hide();
@@ -90,13 +116,11 @@ export const abrirModalGestionCama = (camaId, internacionId, estadoActual, callb
     btnAltaNuevo.addEventListener('click', async () => {
         const idInternacion = document.getElementById('modal-internacion-id').value;
         if (!idInternacion) return Swal.fire({ icon: 'error', title: 'Error', text: 'No hay ID de internación.'});
-
         const confirmacion = await Swal.fire({
             title: '¿Confirmar Alta Médica?', text: "La cama pasará a Limpieza.", icon: 'warning',
             showCancelButton: true, confirmButtonColor: 'var(--color-primario)', cancelButtonColor: 'var(--color-peligro)',
             confirmButtonText: 'Sí, procesar alta', cancelButtonText: 'Cancelar'
         });
-
         if (confirmacion.isConfirmed) {
             btnAltaNuevo.disabled = true;
             btnAltaNuevo.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Procesando...';
@@ -149,16 +173,13 @@ export const abrirModalGestionCama = (camaId, internacionId, estadoActual, callb
         const selectCamaActiva = document.getElementById('select-traslado-cama');
         selectCamaActiva.innerHTML = '<option value="" selected disabled>Cargando camas...</option>';
         selectCamaActiva.disabled = true;
-
         try {
             const camas = await AdmisionServicio.obtenerCamasPorSector(sectorDestinoId);
             const camasDisponibles = camas.filter(c => c.estado === 'Disponible');
-
             if (camasDisponibles.length === 0) {
                 selectCamaActiva.innerHTML = '<option value="" selected disabled>No hay camas disponibles</option>';
                 return;
             }
-
             selectCamaActiva.innerHTML = '<option value="" selected disabled>Seleccione una cama...</option>';
             camasDisponibles.sort((a, b) => a.numero - b.numero).forEach(c => selectCamaActiva.innerHTML += `<option value="${c.camaId}">Cama ${c.numero}</option>`);
             selectCamaActiva.disabled = false;
@@ -171,8 +192,7 @@ export const abrirModalGestionCama = (camaId, internacionId, estadoActual, callb
     const btnCancelarTrasladoNuevo = btnCancelarTraslado.cloneNode(true);
     btnCancelarTraslado.parentNode.replaceChild(btnCancelarTrasladoNuevo, btnCancelarTraslado);
     btnCancelarTrasladoNuevo.addEventListener('click', () => {
-        document.getElementById('formulario-traslado').classList.add('d-none');
-        document.getElementById('bloque-botones-ocupada').classList.remove('d-none');
+        modalBootstrap.hide(); // Al presionar cancelar, cerramos el flujo directo
     });
 
     const btnConfirmarTraslado = document.getElementById('btn-confirmar-traslado');
@@ -188,7 +208,6 @@ export const abrirModalGestionCama = (camaId, internacionId, estadoActual, callb
 
         btnConfirmarTrasladoNuevo.disabled = true;
         btnConfirmarTrasladoNuevo.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Trasladando...';
-
         try {
             await AdmisionServicio.trasladarPaciente(idInternacion, camaDestinoId, motivoTraslado);
             modalBootstrap.hide();
@@ -216,18 +235,24 @@ export const abrirModalGestionCama = (camaId, internacionId, estadoActual, callb
 
         try {
             const paciente = await AdmisionServicio.buscarPacientePorDni(dni);
-            
-            // Si el backend devuelve null o vacío
             if (!paciente) throw new Error("Paciente no encontrado en el sistema.");
 
-            // Mostrar tarjeta de resultado
             document.getElementById('hidden-paciente-id').value = paciente.pacienteId; 
             document.getElementById('lbl-paciente-nombre').textContent = paciente.nombre;
-            document.getElementById('lbl-paciente-datos').textContent = `DNI: ${paciente.dni}`;
-            document.getElementById('tarjeta-paciente-encontrado').classList.remove('d-none');
             
-            // Habilitar botón de registro
-            document.getElementById('btn-registrar-internacion').disabled = false;
+            // --- NUEVA VALIDACIÓN PROACTIVA ---
+            // IMPORTANTE: El backend debe enviar la propiedad 'estaInternado' en true/false, o 'internacionActivaId' con datos.
+            const yaEstaInternado = paciente.estaInternado || paciente.internacionActivaId || false;
+
+            if (yaEstaInternado) {
+                document.getElementById('lbl-paciente-datos').innerHTML = `DNI: ${paciente.dni} <br><span class="badge bg-danger mt-1"><i class="bi bi-exclamation-triangle-fill me-1"></i>Paciente ya internado</span>`;
+                document.getElementById('btn-registrar-internacion').disabled = true; // Bloqueamos el botón
+            } else {
+                document.getElementById('lbl-paciente-datos').textContent = `DNI: ${paciente.dni}`;
+                document.getElementById('btn-registrar-internacion').disabled = false; // Habilitamos el botón
+            }
+
+            document.getElementById('tarjeta-paciente-encontrado').classList.remove('d-none');
 
         } catch (error) {
             document.getElementById('tarjeta-paciente-encontrado').classList.add('d-none');
@@ -267,4 +292,24 @@ export const abrirModalGestionCama = (camaId, internacionId, estadoActual, callb
             btnRegistrarNuevo.innerHTML = '<i class="bi bi-clipboard2-pulse-fill me-2"></i>Registrar Internación';
         }
     });
+
+    // =========================================================================
+    // ¡LA SOLUCIÓN DE ENRUTAMIENTO DIRECTO AL FINAL DEL ARCHIVO!
+    // =========================================================================
+    if (estadoActual === 'Ocupada') {
+        if (accion === 'alta') {
+            // Escondemos SOLAMENTE el botón de inicio de traslado intermedio
+            document.getElementById('btn-iniciar-traslado').classList.add('d-none');
+            document.getElementById('formulario-traslado').classList.add('d-none');
+            // El botón de "Procesar Alta Médica" queda perfectamente visible
+        } else if (accion === 'trasladar') {
+            // Disparamos el click programático sobre el botón NUEVO ya clonado con sus listeners activos
+            const btnIniciarTrasladoActivo = document.getElementById('btn-iniciar-traslado');
+            if (btnIniciarTrasladoActivo) {
+                btnIniciarTrasladoActivo.click(); // Esto disparará la carga de sectores de la API perfectamente
+            }
+        }
+    }
+
+    modalBootstrap.show();
 };
